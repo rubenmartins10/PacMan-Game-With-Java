@@ -30,8 +30,20 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         void updateDirection(char direction) {
+            char prevDirection = this.direction;
             this.direction = direction;
             updateVelocity();
+            this.x += this.velocityX;
+            this.y += this.velocityY;
+            for (Block wall : walls) {
+                if ( collision(this, wall) ) {
+                    //reverse movement
+                    this.x -= this.velocityX;
+                    this.y -= this.velocityY;
+                    this.direction = prevDirection;
+                    updateVelocity();
+                }
+            }
         }
 
         void updateVelocity(){
@@ -100,6 +112,8 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
     Block pacman;
 
     Timer gameLoop;
+    char[] directions = {'U', 'D', 'L', 'R'}; 
+    Random random = new Random();
 
     PacMan() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -119,6 +133,10 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         pacmanRightImage = new ImageIcon(getClass().getResource("./pacmanRight.png")).getImage();
 
         loadMap();
+        for (Block ghost : ghosts) {
+            ghost.newDirection = directions[random.nextInt(4)];
+            ghost.updateDirection(newDirection);
+        }   
         gameLoop = new Timer(50, this);
         gameLoop.start();
         
@@ -184,8 +202,48 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    public void move() {
+        pacman.x += pacman.velocityX;
+        pacman.y += pacman.velocityY;
+
+        //check wall collisions
+        for (Block wall : walls) {
+            if ( collision(pacman, wall) ) {
+                //reverse movement
+                pacman.x -= pacman.velocityX;
+                pacman.y -= pacman.velocityY;
+                break;
+            }
+        }
+
+        for (Block ghost : ghosts) {
+            ghost.x += ghost.velocityX;
+            ghost.y += ghost.velocityY;
+
+            //check wall collisions
+            for (Block wall : walls) {
+                if ( collision(ghost, wall) ) {
+                    //reverse movement
+                    ghost.x -= ghost.velocityX;
+                    ghost.y -= ghost.velocityY;
+                    //change direction
+                    char newDirection = directions[random.nextInt(4)];
+                    ghost.updateDirection(newDirection);
+                }
+            }
+        }
+    }
+
+    public boolean collision(Block a, Block b) {
+        return a.x < b.x + b.width &&
+               a.x + a.width > b.x &&
+               a.y < b.y + b.height &&
+               a.y + a.height > b.y;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
+        move();
         repaint();
     }
 
