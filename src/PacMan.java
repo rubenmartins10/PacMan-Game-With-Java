@@ -134,7 +134,7 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
 
         loadMap();
         for (Block ghost : ghosts) {
-            ghost.newDirection = directions[random.nextInt(4)];
+            char newDirection = directions[random.nextInt(4)];
             ghost.updateDirection(newDirection);
         }   
         gameLoop = new Timer(50, this);
@@ -217,12 +217,15 @@ public class PacMan extends JPanel implements ActionListener, KeyListener {
         }
 
         for (Block ghost : ghosts) {
+            if (ghost.y == tileSize*9 && ghost.direction != 'U' && ghost.direction != 'D') {
+                ghost.updateDirection('U');
+            }
             ghost.x += ghost.velocityX;
             ghost.y += ghost.velocityY;
 
             //check wall collisions
             for (Block wall : walls) {
-                if ( collision(ghost, wall) ) {
+                if ( collision(ghost, wall)|| ghost.x <= 0 || ghost.x + ghost.width >= boardWidth) {
                     //reverse movement
                     ghost.x -= ghost.velocityX;
                     ghost.y -= ghost.velocityY;
